@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clube de Leitura</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html">
+                <i class="bi bi-book"></i> Leitor Social
+            </a>
+            <div class="ms-auto">
+                <a href="index.html" class="btn btn-outline-light btn-sm me-1">
+                    <i class="bi bi-house"></i> Início
+                </a>
+                <a href="groups.html" class="btn btn-light btn-sm">
+                    <i class="bi bi-people"></i> Clubes
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <div id="group-details">
+            <div class="text-center py-5 text-muted">Carregando...</div>
+        </div>
+    </div>
+
+    <!-- Modal para buscar e adicionar livros -->
+    <div class="modal fade" id="addBookModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Adicionar Livro ao Clube</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="search-book-input" placeholder="Buscar livro por título ou autor...">
+                        <button class="btn btn-primary" id="search-book-btn">Buscar</button>
+                    </div>
+                    <div id="search-book-results" class="row row-cols-1 row-cols-md-2 g-3">
+                        <div class="col-12 text-center text-muted">Digite algo para buscar.</div>
+                    </div>
+                    <div id="add-book-error" class="text-danger mt-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ============================================================
+        // VARIÁVEIS GLOBAIS
+        // ============================================================
+        let currentGroupId = null;
+        let searchTimeout = null;
+
+        // ============================================================
+        // CARREGAR DETALHES DO GRUPO
+        // ============================================================
+        async function loadGroup() {
+            const params = new URLSearchParams(window.location.search);
+            const groupId = params.get('id');
+            if (!groupId) {
+                document.getElementById('group-details').innerHTML = '<div class="text-danger">ID do grupo não informado.</div>';
+                return;
+            }
+            currentGroupId = groupId;
+
+            try {
+                const res = await fetch(`../api/groups.php?id=${groupId}`, { credentials: 'include' });
+                const group = await res.json();
+                if (group.error) {
+                    document.getElementById('group-details').innerHTML = `<div class="text-danger">${group.error}</div>`;
+                    return;
+                }
+
+                // Renderiza página completa
+                document.getElementById('group-details').innerHTML = `
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h2>${group.name}</h2>
+                                    <p>${group.description || 'Sem descrição'}</p>
+                                </div>
+                                ${group.is_member ? `<button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#addBookModal"><i class="bi bi-plus-circle"></i> Adicionar Livro</button>` : ''}
+                            </div>
+                            <div class="d-flex gap-3 mb-3">
+                                <span class="badge bg-secondary"><i class="bi bi-people"></i> ${group.member_count} membros</span>
+                                <span class="badge bg-info"><i class="bi bi-book"></i> ${group.book_count} livros</span>
+                                ${group.is_member ? '<span class="badge bg-success">Você é membro</span>' : ''}
+                            </div>
+                            <p class="text-muted">Criado por ${group.creator_name} · Código: <code>${group.join_code}</code></p>
+                            ${!group.is_member ? `<button class="btn btn-success" onclick="joinGroup(${group.id})">Entrar no Clube</button>` : ''}
+                            ${group.is_member ? `<button class="btn btn-danger" onclick="leaveGroup(${group.id})">Sair do Clube</button>` : ''}
+                            <hr>
+                            <h5>Membros</h5>
+                            <ul class="list-unstyled">
+                                ${group.members.map(m => `
+                                    <li><i class="bi bi-person"></i> ${m.name} ${m.role === 'admin' ? '(Admin)' : ''}</li>
+                                `).join('')}
+                            </ul>
+                            <hr>
+                            <h5>Livros do Clube</h5>
+                            <div id="group-books-list" class="row row-cols-1 row-cols-md-2 g-3">
+                                ${group.books.length === 0 ? '<div class="col-12 text-muted">Nenhum livro adicionado ainda.</div>' : 
+                                group.books.map(b => `
+                                    <div class="col">
+                                        <div class="card h-100">
+                                            <img src="${b.thumbnail}" class="card-img-top" style="height:150px;object-fit:contain;background:#f8f9fa;padding:8px;">
+                                            <div class="card-body">
+                                                <h6>${b.title}</h6>
+                                                <p class="small text-muted">${b.authors}</p>
+                                                <span class="badge bg-secondary">${b.status}</span>
+                                                ${group.is_member ? `<button class="btn btn-danger btn-sm float-end" onclick="removeBookFromGroup(${group.id}, ${b.id})"><i class="bi bi-trash"></i></button>` : ''}
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <hr>
+                            <h5>Discussões</h5>
+                            <div id="group-discussions">
+                                ${group.discussions.length === 0 ? '<p class="text-muted">Nenhuma discussão ainda.</p>' :
+                                group.discussions.map(d => `
+                                    <div class="border-bottom py-2">
+                                        <strong>${d.user_name}</strong>
+                                        <p>${d.message}</p>
+                                        <small class="text-muted">${new Date(d.created_at).toLocaleString()}</small>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            ${group.is_member ? `
+                            <hr>
+                            <h5>Nova Discussão</h5>
+                            <form id="discuss-form">
+                                <div class="mb-2">
+                                    <textarea class="form-control" id="discuss-message" rows="2" placeholder="Escreva sua mensagem..."></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm">Enviar</button>
+                            </form>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+
+                // Listener para o formulário de discussão
+                document.getElementById('discuss-form')?.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const message = document.getElementById('discuss-message').value.trim();
+                    if (!message) return;
+                    await sendDiscussion(group.id, message);
+                    document.getElementById('discuss-message').value = '';
+                    loadGroup(); // recarrega
+                });
+
+            } catch (e) {
+                document.getElementById('group-details').innerHTML = `<div class="text-danger">Erro: ${e.message}</div>`;
+            }
+        }
+
+        // ============================================================
+        // FUNÇÕES DO GRUPO
+        // ============================================================
+        async function joinGroup(id) {
+            if (!confirm('Entrar neste clube?')) return;
+            const res = await fetch('../api/groups.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ action: 'join', group_id: id })
+            });
+            const data = await res.json();
+            alert(data.message || (data.success ? 'Entrou!' : 'Erro'));
+            if (data.success) location.reload();
+        }
+
+        async function leaveGroup(id) {
+            if (!confirm('Sair deste clube?')) return;
+            const res = await fetch('../api/groups.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ action: 'leave', group_id: id })
+            });
+            const data = await res.json();
+            alert(data.message || (data.success ? 'Saiu!' : 'Erro'));
+            if (data.success) window.location.href = 'groups.html';
+        }
+
+        async function sendDiscussion(groupId, message) {
+            try {
+                const res = await fetch('../api/groups.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ action: 'discuss', group_id: groupId, message })
+                });
+                const data = await res.json();
+                if (!data.success) alert(data.error || 'Erro ao enviar mensagem.');
+            } catch (e) {
+                alert('Erro de conexão.');
+            }
+        }
+
+        // ============================================================
+        // REMOVER LIVRO DO GRUPO
+        // ============================================================
+        async function removeBookFromGroup(groupId, bookId) {
+            if (!confirm('Remover este livro do clube?')) return;
+            try {
+                const res = await fetch('../api/groups.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ action: 'remove_book', group_id: groupId, book_id: bookId })
+                });
+                const data = await res.json();
+                alert(data.message || (data.success ? 'Removido!' : 'Erro'));
+                if (data.success) loadGroup();
+            } catch (e) {
+                alert('Erro de conexão.');
+            }
+        }
+
+        // ============================================================
+        // BUSCAR LIVROS PARA ADICIONAR AO CLUBE
+        // ============================================================
+        async function searchBooksForGroup(query) {
+            const container = document.getElementById('search-book-results');
+            if (!query.trim()) {
+                container.innerHTML = '<div class="col-12 text-center text-muted">Digite algo para buscar.</div>';
+                return;
+            }
+            container.innerHTML = '<div class="col-12 text-center"><div class="spinner-border text-primary" role="status"></div></div>';
+            try {
+                const res = await fetch(`../api/books.php?q=${encodeURIComponent(query)}`, { credentials: 'include' });
+                const data = await res.json();
+                if (data.error) {
+                    container.innerHTML = `<div class="col-12 text-danger">${data.error}</div>`;
+                    return;
+                }
+                if (data.length === 0) {
+                    container.innerHTML = '<div class="col-12 text-muted text-center">Nenhum livro encontrado.</div>';
+                    return;
+                }
+                container.innerHTML = data.map(book => `
+                    <div class="col">
+                        <div class="card h-100">
+                            <img src="${book.thumbnail}" class="card-img-top" style="height:120px;object-fit:contain;background:#f8f9fa;padding:4px;">
+                            <div class="card-body">
+                                <h6>${book.title}</h6>
+                                <p class="small text-muted">${book.authors}</p>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <button class="btn btn-primary btn-sm w-100 add-to-group-btn" 
+                                        data-book-id="${book.google_book_id}"
+                                        data-title="${book.title}"
+                                        data-authors="${book.authors}"
+                                        data-thumbnail="${book.thumbnail}"
+                                        data-description="${book.description || ''}"
+                                        data-published-date="${book.published_date || ''}">
+                                    <i class="bi bi-plus-circle"></i> Adicionar ao Clube
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Listeners para adicionar ao grupo
+                document.querySelectorAll('.add-to-group-btn').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const bookData = {
+                            google_book_id: this.dataset.bookId,
+                            title: this.dataset.title,
+                            authors: this.dataset.authors,
+                            thumbnail: this.dataset.thumbnail,
+                            description: this.dataset.description,
+                            published_date: this.dataset.publishedDate
+                        };
+                        await addBookToGroup(bookData);
+                    });
+                });
+            } catch (e) {
+                container.innerHTML = `<div class="col-12 text-danger">Erro: ${e.message}</div>`;
+            }
+        }
+
+        // ============================================================
+        // ADICIONAR LIVRO AO GRUPO (via API)
+        // ============================================================
+        async function addBookToGroup(bookData) {
+            if (!currentGroupId) {
+                document.getElementById('add-book-error').textContent = 'ID do grupo não identificado.';
+                return;
+            }
+
+            // Primeiro, precisamos garantir que o livro existe na tabela `books`
+            // Se não existir, criamos via POST em my-books.php (ou podemos criar diretamente)
+            // Vamos usar o mesmo método que já temos: adicionar à estante do usuário para garantir que o livro seja criado.
+            try {
+                // Passo 1: Adicionar à estante do usuário (se não existir, cria o livro)
+                const res1 = await fetch('../api/my-books.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ ...bookData, status: 'want_to_read' })
+                });
+                const data1 = await res1.json();
+                if (!data1.success) {
+                    document.getElementById('add-book-error').textContent = 'Erro ao adicionar livro: ' + (data1.error || '');
+                    return;
+                }
+
+                // Passo 2: Agora precisamos do book_id (ID interno) para adicionar ao grupo
+                // Buscar o livro pelo google_book_id
+                const res2 = await fetch(`../api/my-books.php`, { credentials: 'include' });
+                const userBooks = await res2.json();
+                const book = userBooks.find(b => b.google_book_id === bookData.google_book_id);
+                if (!book) {
+                    document.getElementById('add-book-error').textContent = 'Livro não encontrado na estante.';
+                    return;
+                }
+
+                // Passo 3: Adicionar ao grupo
+                const res3 = await fetch('../api/groups.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        action: 'add_book',
+                        group_id: currentGroupId,
+                        book_id: book.id,
+                        status: 'pending'
+                    })
+                });
+                const data3 = await res3.json();
+                if (data3.success) {
+                    alert('✅ Livro adicionado ao clube!');
+                    bootstrap.Modal.getInstance(document.getElementById('addBookModal')).hide();
+                    loadGroup(); // recarrega a página do grupo
+                } else {
+                    document.getElementById('add-book-error').textContent = data3.error || 'Erro ao adicionar ao clube.';
+                }
+            } catch (e) {
+                document.getElementById('add-book-error').textContent = 'Erro: ' + e.message;
+            }
+        }
+
+        // ============================================================
+        // EVENTOS DA BUSCA DE LIVROS
+        // ============================================================
+        document.getElementById('search-book-btn')?.addEventListener('click', function() {
+            const query = document.getElementById('search-book-input').value;
+            searchBooksForGroup(query);
+        });
+
+        document.getElementById('search-book-input')?.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const query = this.value;
+            if (query.length > 2) {
+                searchTimeout = setTimeout(() => searchBooksForGroup(query), 500);
+            } else {
+                document.getElementById('search-book-results').innerHTML = '<div class="col-12 text-center text-muted">Digite pelo menos 3 caracteres.</div>';
+            }
+        });
+
+        // ============================================================
+        // INICIALIZAÇÃO
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', loadGroup);
+    </script>
+</body>
+</html>
