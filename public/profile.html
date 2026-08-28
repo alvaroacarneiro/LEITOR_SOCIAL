@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil do Leitor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* ============================================================
+           ESTILOS EXCLUSIVOS PARA O PERFIL PÚBLICO
+           ============================================================ */
+        .profile-header {
+            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+            color: white;
+            padding: 2rem 0;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(13, 110, 253, 0.3);
+        }
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            border: 3px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            margin: 0 auto 1rem;
+            backdrop-filter: blur(4px);
+            transition: transform 0.3s ease;
+        }
+        .profile-avatar:hover {
+            transform: scale(1.05);
+        }
+        .profile-name {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .profile-since {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(4px);
+            border-radius: 12px;
+            padding: 0.8rem 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-2px);
+        }
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Cards de livros */
+        .book-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .book-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+        .book-card .card-img-top {
+            height: 200px;
+            object-fit: contain;
+            background: #f8f9fa;
+            padding: 10px;
+        }
+        .book-card .card-body {
+            padding: 1rem;
+        }
+        .book-card .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.3;
+        }
+        .book-card .card-text {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        .book-card .badge {
+            font-weight: 500;
+        }
+
+        .review-text {
+            font-style: italic;
+            color: #495057;
+            background: #f8f9fa;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            border-left: 3px solid #0d6efd;
+            margin-top: 0.5rem;
+        }
+
+        .share-buttons .btn {
+            border-radius: 30px;
+            padding: 0.4rem 1rem;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .share-buttons .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 30px;
+            font-weight: 500;
+        }
+
+        @media (max-width: 576px) {
+            .profile-header {
+                padding: 1.5rem 0;
+                border-radius: 12px;
+            }
+            .profile-name {
+                font-size: 1.5rem;
+            }
+            .stat-number {
+                font-size: 1.3rem;
+            }
+            .book-card .card-img-top {
+                height: 150px;
+            }
+            .profile-avatar {
+                width: 70px;
+                height: 70px;
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html">
+                <i class="bi bi-book"></i> Leitor Social
+            </a>
+            <div class="ms-auto">
+                <a href="index.html" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-house"></i> Início
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <!-- ===== CABEÇALHO DO PERFIL ===== -->
+        <div class="profile-header text-center">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-3">
+                        <div class="profile-avatar">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h1 class="profile-name" id="profile-name">Carregando...</h1>
+                        <p class="profile-since" id="profile-since">
+                            <i class="bi bi-calendar3"></i> Membro desde <span id="member-since">--</span>
+                        </p>
+                        <div class="share-buttons mt-2">
+                            <button class="btn btn-light btn-sm me-1" onclick="copyProfileLink()">
+                                <i class="bi bi-link-45deg"></i> Copiar link
+                            </button>
+                            <a href="#" id="share-whatsapp" target="_blank" class="btn btn-success btn-sm me-1">
+                                <i class="bi bi-whatsapp"></i>
+                            </a>
+                            <a href="#" id="share-twitter" target="_blank" class="btn btn-info btn-sm text-white">
+                                <i class="bi bi-twitter-x"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="row g-2">
+                            <div class="col-4">
+                                <div class="stat-card">
+                                    <div class="stat-number" id="stat-books">0</div>
+                                    <div class="stat-label">Livros</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-card">
+                                    <div class="stat-number" id="stat-reviews">0</div>
+                                    <div class="stat-label">Resenhas</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-card">
+                                    <div class="stat-number" id="stat-rating">0</div>
+                                    <div class="stat-label">Média</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== ESTATÍSTICAS DETALHADAS ===== -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-title"><i class="bi bi-pie-chart"></i> Distribuição por Status</h6>
+                        <div id="status-distribution" class="d-flex flex-wrap gap-2">
+                            <span class="badge bg-primary p-2">📌 Quero Ler: <span id="dist-want">0</span></span>
+                            <span class="badge bg-warning text-dark p-2">📖 Lendo: <span id="dist-reading">0</span></span>
+                            <span class="badge bg-success p-2">✅ Concluído: <span id="dist-finished">0</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-title"><i class="bi bi-tags"></i> Tags Mais Frequentes</h6>
+                        <div id="top-tags" class="d-flex flex-wrap gap-1">
+                            <span class="text-muted">Carregando...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== LISTA DE LIVROS ===== -->
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-book"></i> Livros e Resenhas
+                    <span class="badge bg-secondary ms-2" id="book-count-header">0</span>
+                </h5>
+                <div id="profile-books" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                    <div class="col-12 text-center text-muted">Carregando livros...</div>
+                </div>
+                <div id="books-empty" class="text-center text-muted py-4 d-none">
+                    <i class="bi bi-emoji-frown" style="font-size: 2rem;"></i>
+                    <p class="mt-2">Nenhum livro com resenha ou concluído ainda.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast para feedback -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050">
+        <div id="liveToast" class="toast align-items-center border-0 text-white bg-success" role="alert">
+            <div class="d-flex">
+                <div class="toast-body" id="toast-message">Link copiado!</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ============================================================
+        // TOAST
+        // ============================================================
+        const toastEl = document.getElementById('liveToast');
+        const toast = new bootstrap.Toast(toastEl, { delay: 2000 });
+
+        function showToast(msg) {
+            document.getElementById('toast-message').textContent = msg;
+            toast.show();
+        }
+
+        // ============================================================
+        // COPIAR LINK
+        // ============================================================
+        function copyProfileLink() {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                showToast('Link copiado para a área de transferência!');
+            }).catch(() => {
+                // Fallback
+                const input = document.createElement('input');
+                input.value = url;
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand('copy');
+                document.body.removeChild(input);
+                showToast('Link copiado!');
+            });
+        }
+
+        // ============================================================
+        // COMPARTILHAMENTO
+        // ============================================================
+        function updateShareLinks(name) {
+            const url = window.location.href;
+            const text = `📚 Veja o perfil de ${name} no Leitor Social!`;
+            document.getElementById('share-whatsapp').href =
+                `https://api.whatsapp.com/send?text=${encodeURIComponent(text + ' ' + url)}`;
+            document.getElementById('share-twitter').href =
+                `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+        }
+
+        // ============================================================
+        // CARREGAR PERFIL
+        // ============================================================
+        async function loadProfile() {
+            const params = new URLSearchParams(window.location.search);
+            const userId = params.get('user_id');
+            const username = params.get('username');
+
+            if (!userId && !username) {
+                document.getElementById('profile-name').textContent = 'Usuário não especificado';
+                document.getElementById('profile-books').innerHTML = '<div class="col-12 text-danger">Informe um usuário válido.</div>';
+                return;
+            }
+
+            try {
+                const url = `../api/public-profile.php?${userId ? 'user_id='+userId : 'username='+encodeURIComponent(username)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (data.error) {
+                    document.getElementById('profile-name').textContent = 'Erro';
+                    document.getElementById('profile-books').innerHTML = `<div class="col-12 text-danger">${data.error}</div>`;
+                    document.getElementById('books-empty').classList.remove('d-none');
+                    return;
+                }
+
+                // ===== DADOS DO USUÁRIO =====
+                document.getElementById('profile-name').textContent = data.user.name;
+                document.getElementById('member-since').textContent = data.user.member_since;
+                document.getElementById('profile-since').innerHTML =
+                    `<i class="bi bi-calendar3"></i> Membro desde ${data.user.member_since}`;
+
+                document.getElementById('stat-books').textContent = data.stats.total_books;
+                document.getElementById('stat-reviews').textContent = data.stats.total_reviews;
+                document.getElementById('stat-rating').textContent = data.stats.avg_rating || '—';
+
+                document.getElementById('book-count-header').textContent = data.stats.total_books;
+
+                updateShareLinks(data.user.name);
+
+                // ===== DISTRIBUIÇÃO POR STATUS =====
+                const counts = { want_to_read: 0, reading: 0, finished: 0 };
+                data.books.forEach(b => {
+                    if (counts.hasOwnProperty(b.status)) counts[b.status]++;
+                });
+                document.getElementById('dist-want').textContent = counts.want_to_read;
+                document.getElementById('dist-reading').textContent = counts.reading;
+                document.getElementById('dist-finished').textContent = counts.finished;
+
+                // ===== TAGS MAIS FREQUENTES =====
+                const tagFreq = {};
+                data.books.forEach(b => {
+                    if (b.tags) {
+                        b.tags.split(',').map(t => t.trim()).forEach(t => {
+                            if (t) tagFreq[t] = (tagFreq[t] || 0) + 1;
+                        });
+                    }
+                });
+                const sortedTags = Object.entries(tagFreq).sort((a,b) => b[1] - a[1]).slice(0, 5);
+                const tagsContainer = document.getElementById('top-tags');
+                if (sortedTags.length) {
+                    tagsContainer.innerHTML = sortedTags.map(([tag, count]) =>
+                        `<span class="badge bg-secondary p-2">${tag} (${count})</span>`
+                    ).join(' ');
+                } else {
+                    tagsContainer.innerHTML = '<span class="text-muted">Nenhuma tag encontrada.</span>';
+                }
+
+                // ===== LIVROS =====
+                const container = document.getElementById('profile-books');
+                const empty = document.getElementById('books-empty');
+
+                if (data.books.length === 0) {
+                    container.innerHTML = '';
+                    empty.classList.remove('d-none');
+                    return;
+                }
+                empty.classList.add('d-none');
+
+                container.innerHTML = data.books.map(book => `
+                    <div class="col">
+                        <div class="card book-card h-100 border-${book.status === 'finished' ? 'success' : 'secondary'}">
+                            <img src="${book.thumbnail}" class="card-img-top" alt="${book.title}" loading="lazy">
+                            <div class="card-body">
+                                <h6 class="card-title">${book.title}</h6>
+                                <p class="card-text">${book.authors}</p>
+                                <div class="d-flex flex-wrap gap-1 mb-2">
+                                    ${book.rating ? `<span class="badge bg-warning text-dark"><i class="bi bi-star-fill"></i> ${book.rating}</span>` : ''}
+                                    ${book.status === 'finished' ? `<span class="badge bg-success">✅ Concluído</span>` :
+                                      book.status === 'reading' ? `<span class="badge bg-warning text-dark">📖 Lendo</span>` :
+                                      `<span class="badge bg-primary">📌 Quero Ler</span>`}
+                                </div>
+                                ${book.tags ? `<div class="mb-1">${book.tags.split(',').map(t => `<span class="badge bg-secondary me-1">${t.trim()}</span>`).join('')}</div>` : ''}
+                                ${book.review ? `<div class="review-text">"${book.review}"</div>` : ''}
+                                ${book.finished_at ? `<small class="text-muted d-block mt-1"><i class="bi bi-calendar-check"></i> Concluído em ${book.finished_at}</small>` : ''}
+                                ${book.started_at && !book.finished_at ? `<small class="text-muted d-block mt-1"><i class="bi bi-calendar-plus"></i> Iniciado em ${book.started_at}</small>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (e) {
+                document.getElementById('profile-name').textContent = 'Erro ao carregar';
+                document.getElementById('profile-books').innerHTML = `<div class="col-12 text-danger">Erro de conexão: ${e.message}</div>`;
+                console.error(e);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadProfile);
+    </script>
+</body>
+</html>
