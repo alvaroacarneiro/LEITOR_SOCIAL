@@ -486,7 +486,7 @@ Passo a Passo
 Clone o repositório:
 
 bash
-git clone https://github.com/seu-usuario/leitor-social.git
+git clone https://github.com/alvaroacarneiro/leitor-social.git
 cd leitor-social
 Importe a estrutura do banco de dados:
 
@@ -564,9 +564,8 @@ Abra um Pull Request descrevendo suas alterações.
 Este projeto é distribuído sob a Licença MIT, que permite uso, modificação e distribuição livre, desde que mantidos os créditos ao autor original. Veja o arquivo LICENSE para mais detalhes.
 
 👨‍💻 Autor – Processo Autoral e Créditos
-Desenvolvido por [Seu Nome]
-https://img.shields.io/badge/LinkedIn-Perfil-0A66C2?style=flat&logo=linkedin&logoColor=white
-https://img.shields.io/badge/GitHub-Reposit%C3%B3rio-181717?style=flat&logo=github&logoColor=white
+Desenvolvido por Álvaro Antonio Carneiro
+
 
 Este projeto foi criado integralmente do zero por mim, desde a concepção da ideia, modelagem de banco de dados, arquitetura de código, design de interface e documentação. Todo o código PHP, JavaScript e CSS, bem como a lógica de negócio e a integração com a API do Google Books, são de minha autoria.
 
